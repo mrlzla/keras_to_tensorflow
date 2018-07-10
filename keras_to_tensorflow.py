@@ -84,6 +84,8 @@ from keras.models import load_model
 import tensorflow as tf
 import os
 import os.path as osp
+import keras
+import keras_applications
 from keras import backend as K
 
 output_fld =  args.output_fld
@@ -100,7 +102,11 @@ else:
     K.set_image_data_format('channels_last')
 
 try:
-    net_model = load_model(weight_file_path)
+    custom_objects = {
+        'relu6': keras_applications.mobilenet.relu6,
+        'DepthwiseConv2D': keras.layers.DepthwiseConv2D
+    }
+    net_model = load_model(weight_file_path, custom_objects=custom_objects, compile=False)
 except ValueError as err:
     print('''Input file specified ({}) only holds the weights, and not the model defenition.
     Save the model using mode.save(filename.h5) which will contain the network architecture
@@ -110,6 +116,7 @@ except ValueError as err:
     Check the keras documentation for more details (https://keras.io/getting-started/faq/)'''
           .format(weight_file_path))
     raise err
+#import ipdb; ipdb.set_trace()
 num_output = args.num_outputs
 pred = [None]*num_output
 pred_node_names = [None]*num_output
